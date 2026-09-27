@@ -1,3 +1,4 @@
+import { getAssetUrl } from '../../shared/asset';
 import { useShop } from '../../shared/context/ShopContext';
 
 import EmptyState from '../../components/EmptyState';
@@ -53,7 +54,10 @@ export default function CartPage({ navigate }: Props) {
                 type="button"
                 onClick={() => navigate(`/product/${item.product.id}`)}
               >
-                <img src={item.product.images[0]} alt={item.product.name} />
+                <img
+                  src={getAssetUrl(item.product.images[0])}
+                  alt={item.product.name}
+                />
               </button>
 
               <div className={styles.content}>

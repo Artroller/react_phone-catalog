@@ -1,4 +1,6 @@
+import { getAssetUrl } from '../../shared/asset';
 import { useShop } from '../../shared/context/ShopContext';
+
 import type { Product } from '../../shared/types';
 
 import styles from './ProductCard.module.scss';
@@ -16,18 +18,20 @@ export default function ProductCard({ product, navigate }: Props) {
 
   const discount = product.priceRegular - product.priceDiscount;
 
+  const productUrl = `/product/${product.id}`;
+
   return (
     <article className={styles.card}>
       <a
         className={styles.imageLink}
-        href={`/product/${product.id}`}
+        href={productUrl}
         onClick={event => {
           event.preventDefault();
-          navigate(`/product/${product.id}`);
+          navigate(productUrl);
         }}
       >
         <img
-          src={product.images[0]}
+          src={getAssetUrl(product.images[0])}
           alt={product.name}
           className={styles.image}
         />
@@ -35,10 +39,10 @@ export default function ProductCard({ product, navigate }: Props) {
 
       <a
         className={styles.title}
-        href={`/product/${product.id}`}
+        href={productUrl}
         onClick={event => {
           event.preventDefault();
-          navigate(`/product/${product.id}`);
+          navigate(productUrl);
         }}
       >
         {product.name}

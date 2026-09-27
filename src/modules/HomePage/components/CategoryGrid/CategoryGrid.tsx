@@ -1,3 +1,5 @@
+import { getAssetUrl } from '../../../../shared/asset';
+
 import styles from './CategoryGrid.module.scss';
 
 type Props = {
@@ -30,6 +32,7 @@ export default function CategoryGrid({ navigate }: Props) {
     <section className={styles.section}>
       <div className={styles.heading}>
         <span>CATEGORIES</span>
+
         <h2>Shop by category</h2>
       </div>
 
@@ -42,7 +45,7 @@ export default function CategoryGrid({ navigate }: Props) {
             onClick={() => navigate(category.path)}
           >
             <div className={styles.image}>
-              <img src={category.image} alt={category.title} />
+              <img src={getAssetUrl(category.image)} alt={category.title} />
             </div>
 
             <h3>{category.title}</h3>

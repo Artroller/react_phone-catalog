@@ -4,29 +4,20 @@ type RawProduct = {
   id: string | number;
   category?: Category;
   type?: Category;
-
   name?: string;
   title?: string;
-
   priceRegular?: number;
   fullPrice?: number;
   price?: number;
-
   priceDiscount?: number;
-
   year?: number;
-
   capacity?: string;
   capacityAvailable?: string[];
-
   color?: string;
   colorsAvailable?: string[];
-
   images?: string[];
   image?: string;
-
   description?: string;
-
   screen?: string;
   resolution?: string;
   processor?: string;
@@ -36,14 +27,14 @@ type RawProduct = {
   cell?: string[];
 };
 
-const API_URL = '/api/products.json';
+const API_URL = `${import.meta.env.BASE_URL}api/products.json`;
 
 const normalizeImage = (image: string) => {
-  if (image.startsWith('/')) {
+  if (image.startsWith('http://') || image.startsWith('https://')) {
     return image;
   }
 
-  return `/${image}`;
+  return `/${image.replace(/^\/+/, '')}`;
 };
 
 const normalizeProduct = (raw: RawProduct): Product => {
@@ -57,22 +48,15 @@ const normalizeProduct = (raw: RawProduct): Product => {
     id: String(raw.id),
     category: raw.category ?? raw.type ?? 'phones',
     name: raw.name ?? raw.title ?? 'Product',
-
     priceRegular: regularPrice,
     priceDiscount: discountPrice,
-
     year: raw.year ?? 0,
-
     capacity: raw.capacity ?? '',
     capacityAvailable: raw.capacityAvailable ?? [],
-
     color: raw.color ?? '',
     colorsAvailable: raw.colorsAvailable ?? [],
-
     images: images.map(normalizeImage),
-
     description: raw.description ?? '',
-
     screen: raw.screen ?? '',
     resolution: raw.resolution ?? '',
     processor: raw.processor ?? '',

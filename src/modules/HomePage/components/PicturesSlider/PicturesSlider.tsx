@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { getAssetUrl } from '../../../../shared/asset';
+
 import styles from './PicturesSlider.module.scss';
 
 type Props = {
@@ -68,7 +70,7 @@ export default function PicturesSlider({ navigate }: Props) {
         </div>
 
         <div className={styles.imageWrapper}>
-          <img src={slide.image} alt={slide.title} />
+          <img src={getAssetUrl(slide.image)} alt={slide.title} />
         </div>
 
         <button

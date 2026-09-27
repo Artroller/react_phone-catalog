@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import { getProductById, getSuggestedProducts } from '../../shared/api';
+import { getAssetUrl } from '../../shared/asset';
+import { useShop } from '../../shared/context/ShopContext';
 
 import type { Product } from '../../shared/types';
 
@@ -8,8 +10,6 @@ import Breadcrumbs from '../../components/Breadcrumbs';
 import EmptyState from '../../components/EmptyState';
 import Loader from '../../components/Loader';
 import ProductsSlider from '../../components/ProductsSlider';
-
-import { useShop } from '../../shared/context/ShopContext';
 
 import styles from './ProductDetails.module.scss';
 
@@ -36,6 +36,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
   const [selectedImage, setSelectedImage] = useState(0);
 
   const [capacity, setCapacity] = useState('');
+
   const [color, setColor] = useState('');
 
   useEffect(() => {
@@ -99,7 +100,10 @@ export default function ProductDetails({ productId, navigate }: Props) {
       <div className={styles.details}>
         <div>
           <div className={styles.mainImage}>
-            <img src={product.images[selectedImage]} alt={product.name} />
+            <img
+              src={getAssetUrl(product.images[selectedImage])}
+              alt={product.name}
+            />
           </div>
 
           <div className={styles.thumbs}>
@@ -112,7 +116,10 @@ export default function ProductDetails({ productId, navigate }: Props) {
                 }
                 onClick={() => setSelectedImage(index)}
               >
-                <img src={image} alt={`${product.name} ${index + 1}`} />
+                <img
+                  src={getAssetUrl(image)}
+                  alt={`${product.name} ${index + 1}`}
+                />
               </button>
             ))}
           </div>
