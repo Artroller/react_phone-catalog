@@ -12,10 +12,26 @@ import NotFoundPage from './modules/NotFoundPage';
 
 import type { Category } from './shared/types';
 
-const getPath = () => window.location.pathname;
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const getPath = () => {
+  const pathname = window.location.pathname;
+
+  if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
+    return pathname.slice(BASE_PATH.length) || '/';
+  }
+
+  return pathname || '/';
+};
 
 const getQuery = () =>
   new URLSearchParams(window.location.search).get('query') || '';
+
+const getBrowserPath = (path: string) => {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+
+  return `${BASE_PATH}${normalized}`;
+};
 
 export default function App() {
   const [path, setPath] = useState(getPath);
@@ -39,10 +55,16 @@ export default function App() {
   }, []);
 
   const navigate = (to: string) => {
-    window.history.pushState({}, '', to);
+    const [pathname, search] = to.split('?');
 
-    setPath(window.location.pathname);
-    setQuery(new URLSearchParams(window.location.search).get('query') || '');
+    const browserPath = getBrowserPath(pathname);
+    const url = search ? `${browserPath}?${search}` : browserPath;
+
+    window.history.pushState({}, '', url);
+
+    setPath(pathname || '/');
+
+    setQuery(new URLSearchParams(search || '').get('query') || '');
 
     window.scrollTo({
       top: 0,
