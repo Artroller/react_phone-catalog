@@ -9,14 +9,8 @@ const spaFallback = (): Plugin => ({
 
   closeBundle() {
     const distPath = path.resolve(__dirname, 'dist');
-    const indexPath = path.join(
-      distPath,
-      'index.html',
-    );
-    const fallbackPath = path.join(
-      distPath,
-      '404.html',
-    );
+    const indexPath = path.join(distPath, 'index.html');
+    const fallbackPath = path.join(distPath, '404.html');
 
     if (fs.existsSync(indexPath)) {
       fs.copyFileSync(indexPath, fallbackPath);
@@ -25,10 +19,7 @@ const spaFallback = (): Plugin => ({
 });
 
 export default defineConfig(({ mode }) => ({
-  plugins: [
-    react(),
-    spaFallback(),
-  ],
+  plugins: [react(), spaFallback()],
 
   base:
     mode === 'production'
