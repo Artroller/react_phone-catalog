@@ -27,14 +27,16 @@ type RawProduct = {
   cell?: string[];
 };
 
-const API_URL = `${import.meta.env.BASE_URL}api/products.json`;
+const API_URL = import.meta.env.DEV
+  ? '/api/products.json'
+  : '/react_phone-catalog/api/products.json';
 
 const normalizeImage = (image: string) => {
   if (image.startsWith('http://') || image.startsWith('https://')) {
     return image;
   }
 
-  return `/${image.replace(/^\/+/, '')}`;
+  return image.replace(/^\/+/, '');
 };
 
 const normalizeProduct = (raw: RawProduct): Product => {
@@ -42,7 +44,12 @@ const normalizeProduct = (raw: RawProduct): Product => {
 
   const discountPrice = raw.priceDiscount ?? raw.price ?? regularPrice;
 
-  const images = raw.images?.length ? raw.images : raw.image ? [raw.image] : [];
+  const images =
+    Array.isArray(raw.images) && raw.images.length
+      ? raw.images
+      : raw.image
+        ? [raw.image]
+        : [];
 
   return {
     id: String(raw.id),
@@ -71,36 +78,40 @@ export async function getProducts(): Promise<Product[]> {
   const response = await fetch(API_URL);
 
   if (!response.ok) {
-    throw new Error('Unable to load products');
+    throw new Error(`Unable to load products: ${response.status}`);
   }
 
-  const data = (await response.json()) as RawProduct[];
+  const data: unknown = await response.json();
 
-  return data.map(normalizeProduct);
+  if (!Array.isArray(data)) {
+    throw new Error('Products API returned invalid data');
+  }
+
+  return data.map(product => normalizeProduct(product as RawProduct));
 }
 
 export async function getProductsByCategory(
   category: Category,
 ): Promise<Product[]> {
-  const products = await getProducts();
+  const allProducts = await getProducts();
 
-  return products.filter(product => product.category === category);
+  return allProducts.filter(product => product.category === category);
 }
 
 export async function getProductById(
   productId: string,
 ): Promise<Product | null> {
-  const products = await getProducts();
+  const allProducts = await getProducts();
 
-  return products.find(product => product.id === productId) || null;
+  return allProducts.find(product => product.id === productId) || null;
 }
 
 export async function getSuggestedProducts(
   currentProductId: string,
 ): Promise<Product[]> {
-  const products = await getProducts();
+  const allProducts = await getProducts();
 
-  return products
+  return allProducts
     .filter(product => product.id !== currentProductId)
     .sort(() => Math.random() - 0.5)
     .slice(0, 4);

@@ -1,4 +1,4 @@
-export function getAssetUrl(path: string) {
+export function getAssetUrl(path: string): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
