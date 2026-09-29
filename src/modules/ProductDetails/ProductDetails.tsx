@@ -25,7 +25,8 @@ const categoryNames = {
 };
 
 export default function ProductDetails({ productId, navigate }: Props) {
-  const { addToCart, isInCart, toggleFavorite, isFavorite } = useShop();
+  const { addToCart, removeFromCart, isInCart, toggleFavorite, isFavorite } =
+    useShop();
 
   const [product, setProduct] = useState<Product | null>(null);
 
@@ -47,9 +48,11 @@ export default function ProductDetails({ productId, navigate }: Props) {
         setProduct(current);
         setSuggested(recommendations);
 
-        setCapacity(current?.capacityAvailable[0] || current?.capacity || '');
+        if (current) {
+          setCapacity(current.capacityAvailable[0] || current.capacity);
 
-        setColor(current?.colorsAvailable[0] || current?.color || '');
+          setColor(current.colorsAvailable[0] || current.color);
+        }
       })
       .finally(() => setLoading(false));
   }, [productId]);
@@ -70,6 +73,16 @@ export default function ProductDetails({ productId, navigate }: Props) {
 
   const inCart = isInCart(product.id);
   const favorite = isFavorite(product.id);
+
+  const handleCartClick = () => {
+    if (inCart) {
+      removeFromCart(product.id);
+
+      return;
+    }
+
+    addToCart(product);
+  };
 
   return (
     <section className={styles.page}>
@@ -156,7 +169,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
           </div>
 
           <div className={styles.option}>
-            <strong>Color</strong>
+            <strong>Color: {color}</strong>
 
             <div className={styles.radioRow}>
               {product.colorsAvailable.map(value => (
@@ -177,9 +190,10 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <div className={styles.buttons}>
             <button
               type="button"
-              className={styles.cartButton}
-              disabled={inCart}
-              onClick={() => addToCart(product)}
+              className={`${styles.cartButton} ${
+                inCart ? styles.cartButtonAdded : ''
+              }`}
+              onClick={handleCartClick}
             >
               {inCart ? 'Added to cart' : 'Add to cart'}
             </button>

@@ -18,15 +18,25 @@ type Props = {
 
 export default function HomePage({ navigate }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
+
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState(false);
+
   useEffect(() => {
+    setLoading(true);
+    setError(false);
+
     getProducts()
       .then(setProducts)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
-  const brandNew = [...products].sort((a, b) => b.year - a.year).slice(0, 8);
+  const brandNew = products
+    .filter(product => product.priceRegular === product.priceDiscount)
+    .sort((a, b) => b.year - a.year)
+    .slice(0, 8);
 
   const hotPrices = [...products]
     .sort(
@@ -41,9 +51,11 @@ export default function HomePage({ navigate }: Props) {
 
       <PicturesSlider navigate={navigate} />
 
-      {loading ? (
-        <Loader />
-      ) : (
+      {loading && <Loader />}
+
+      {error && <p>Something went wrong. Please reload the page.</p>}
+
+      {!loading && !error && (
         <>
           <ProductsSlider
             title="Brand new models"

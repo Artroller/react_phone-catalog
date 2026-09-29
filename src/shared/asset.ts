@@ -1,8 +1,5 @@
 export function getAssetUrl(path: string): string {
-  if (
-    path.startsWith('http://') ||
-    path.startsWith('https://')
-  ) {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
 

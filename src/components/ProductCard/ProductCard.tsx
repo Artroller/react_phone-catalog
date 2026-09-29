@@ -11,7 +11,8 @@ type Props = {
 };
 
 export default function ProductCard({ product, navigate }: Props) {
-  const { addToCart, toggleFavorite, isFavorite, isInCart } = useShop();
+  const { addToCart, removeFromCart, toggleFavorite, isFavorite, isInCart } =
+    useShop();
 
   const favorite = isFavorite(product.id);
   const inCart = isInCart(product.id);
@@ -19,6 +20,16 @@ export default function ProductCard({ product, navigate }: Props) {
   const discount = product.priceRegular - product.priceDiscount;
 
   const productUrl = `/product/${product.id}`;
+
+  const handleCartClick = () => {
+    if (inCart) {
+      removeFromCart(product.id);
+
+      return;
+    }
+
+    addToCart(product);
+  };
 
   return (
     <article className={styles.card}>
@@ -77,8 +88,7 @@ export default function ProductCard({ product, navigate }: Props) {
         <button
           type="button"
           className={`${styles.cartButton} ${inCart ? styles.added : ''}`}
-          disabled={inCart}
-          onClick={() => addToCart(product)}
+          onClick={handleCartClick}
         >
           {inCart ? 'Added to cart' : 'Add to cart'}
         </button>

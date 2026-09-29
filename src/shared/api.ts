@@ -1,117 +1,170 @@
 import type { Category, Product } from './types';
 
-type RawProduct = {
+type RawListProduct = {
   id: string | number;
-  category?: Category;
-  type?: Category;
-  name?: string;
-  title?: string;
-  priceRegular?: number;
-  fullPrice?: number;
-  price?: number;
-  priceDiscount?: number;
-  year?: number;
-  capacity?: string;
-  capacityAvailable?: string[];
-  color?: string;
-  colorsAvailable?: string[];
-  images?: string[];
-  image?: string;
-  description?: string;
+  category: Category;
+  itemId?: string;
+  name: string;
+  fullPrice: number;
+  price: number;
   screen?: string;
-  resolution?: string;
-  processor?: string;
+  capacity?: string;
+  color?: string;
   ram?: string;
-  camera?: string;
-  zoom?: string;
-  cell?: string[];
+  year: number;
+  image?: string;
 };
 
-const API_URL = import.meta.env.DEV
-  ? '/api/products.json'
-  : '/react_phone-catalog/api/products.json';
+type DescriptionBlock = {
+  title: string;
+  text: string[];
+};
 
-const normalizeImage = (image: string) => {
-  if (image.startsWith('http://') || image.startsWith('https://')) {
-    return image;
+type RawDetailedProduct = {
+  id: string;
+  category: Category;
+  namespaceId: string;
+  name: string;
+
+  capacityAvailable: string[];
+  capacity: string;
+
+  priceRegular: number;
+  priceDiscount: number;
+
+  colorsAvailable: string[];
+  color: string;
+
+  images: string[];
+
+  description: DescriptionBlock[];
+
+  screen: string;
+  resolution: string;
+  processor: string;
+  ram: string;
+  camera: string;
+  zoom: string;
+  cell: string[];
+};
+
+const API_BASE = import.meta.env.BASE_URL;
+
+const getApiUrl = (path: string) => {
+  return `${API_BASE}api/${path}`;
+};
+
+async function getJson<T>(path: string): Promise<T> {
+  const response = await fetch(getApiUrl(path));
+
+  if (!response.ok) {
+    throw new Error(`Failed to load ${path}`);
   }
 
-  return image.replace(/^\/+/, '');
+  return response.json() as Promise<T>;
+}
+
+const getListProducts = () => {
+  return getJson<RawListProduct[]>('products.json');
 };
 
-const normalizeProduct = (raw: RawProduct): Product => {
-  const regularPrice = raw.priceRegular ?? raw.fullPrice ?? raw.price ?? 0;
+const getCategoryProducts = (category: Category) => {
+  return getJson<RawDetailedProduct[]>(`${category}.json`);
+};
 
-  const discountPrice = raw.priceDiscount ?? raw.price ?? regularPrice;
+const createDescription = (blocks: DescriptionBlock[]) => {
+  return blocks
+    .map(block => {
+      const text = block.text.join(' ');
 
-  const images =
-    Array.isArray(raw.images) && raw.images.length
-      ? raw.images
-      : raw.image
-        ? [raw.image]
-        : [];
+      return `${block.title}\n${text}`;
+    })
+    .join('\n\n');
+};
 
+const normalizeProduct = (
+  product: RawDetailedProduct,
+  listProduct?: RawListProduct,
+): Product => {
   return {
-    id: String(raw.id),
-    category: raw.category ?? raw.type ?? 'phones',
-    name: raw.name ?? raw.title ?? 'Product',
-    priceRegular: regularPrice,
-    priceDiscount: discountPrice,
-    year: raw.year ?? 0,
-    capacity: raw.capacity ?? '',
-    capacityAvailable: raw.capacityAvailable ?? [],
-    color: raw.color ?? '',
-    colorsAvailable: raw.colorsAvailable ?? [],
-    images: images.map(normalizeImage),
-    description: raw.description ?? '',
-    screen: raw.screen ?? '',
-    resolution: raw.resolution ?? '',
-    processor: raw.processor ?? '',
-    ram: raw.ram ?? '',
-    camera: raw.camera ?? '',
-    zoom: raw.zoom ?? '',
-    cell: raw.cell ?? [],
+    id: product.id,
+    category: product.category,
+    namespaceId: product.namespaceId,
+
+    name: product.name,
+
+    priceRegular: product.priceRegular ?? listProduct?.fullPrice ?? 0,
+
+    priceDiscount: product.priceDiscount ?? listProduct?.price ?? 0,
+
+    year: listProduct?.year ?? 0,
+
+    capacity: product.capacity,
+    capacityAvailable: product.capacityAvailable,
+
+    color: product.color,
+    colorsAvailable: product.colorsAvailable,
+
+    images: product.images,
+
+    description: createDescription(product.description),
+
+    screen: product.screen,
+    resolution: product.resolution,
+    processor: product.processor,
+    ram: product.ram,
+    camera: product.camera,
+    zoom: product.zoom,
+    cell: product.cell,
   };
 };
 
 export async function getProducts(): Promise<Product[]> {
-  const response = await fetch(API_URL);
+  const [listProducts, phones, tablets, accessories] = await Promise.all([
+    getListProducts(),
+    getCategoryProducts('phones'),
+    getCategoryProducts('tablets'),
+    getCategoryProducts('accessories'),
+  ]);
 
-  if (!response.ok) {
-    throw new Error(`Unable to load products: ${response.status}`);
-  }
+  const detailedProducts = [...phones, ...tablets, ...accessories];
 
-  const data: unknown = await response.json();
+  return detailedProducts.map(product => {
+    const listProduct = listProducts.find(item => item.name === product.name);
 
-  if (!Array.isArray(data)) {
-    throw new Error('Products API returned invalid data');
-  }
-
-  return data.map(product => normalizeProduct(product as RawProduct));
+    return normalizeProduct(product, listProduct);
+  });
 }
 
 export async function getProductsByCategory(
   category: Category,
 ): Promise<Product[]> {
-  const allProducts = await getProducts();
+  const [listProducts, detailedProducts] = await Promise.all([
+    getListProducts(),
+    getCategoryProducts(category),
+  ]);
 
-  return allProducts.filter(product => product.category === category);
+  return detailedProducts.map(product => {
+    const listProduct = listProducts.find(item => item.name === product.name);
+
+    return normalizeProduct(product, listProduct);
+  });
 }
 
 export async function getProductById(
   productId: string,
 ): Promise<Product | null> {
-  const allProducts = await getProducts();
+  const products = await getProducts();
 
-  return allProducts.find(product => product.id === productId) || null;
+  return products.find(product => product.id === productId) || null;
 }
 
 export async function getSuggestedProducts(
   currentProductId: string,
 ): Promise<Product[]> {
-  const allProducts = await getProducts();
+  const products = await getProducts();
 
-  return allProducts
+  return products
     .filter(product => product.id !== currentProductId)
     .sort(() => Math.random() - 0.5)
     .slice(0, 4);

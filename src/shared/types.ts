@@ -3,6 +3,8 @@ export type Category = 'phones' | 'tablets' | 'accessories';
 export type Product = {
   id: string;
   category: Category;
+  namespaceId: string;
+
   name: string;
 
   priceRegular: number;
