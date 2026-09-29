@@ -33,10 +33,7 @@ export default function HomePage({ navigate }: Props) {
       .finally(() => setLoading(false));
   }, []);
 
-  const brandNew = products
-    .filter(product => product.priceRegular === product.priceDiscount)
-    .sort((a, b) => b.year - a.year)
-    .slice(0, 8);
+  const brandNew = [...products].sort((a, b) => b.year - a.year).slice(0, 8);
 
   const hotPrices = [...products]
     .sort(
@@ -53,7 +50,15 @@ export default function HomePage({ navigate }: Props) {
 
       {loading && <Loader />}
 
-      {error && <p>Something went wrong. Please reload the page.</p>}
+      {error && (
+        <div>
+          <p>Something went wrong.</p>
+
+          <button type="button" onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
+      )}
 
       {!loading && !error && (
         <>
@@ -61,6 +66,7 @@ export default function HomePage({ navigate }: Props) {
             title="Brand new models"
             products={brandNew}
             navigate={navigate}
+            showDiscount={false}
           />
 
           <CategoryGrid navigate={navigate} />
@@ -69,6 +75,7 @@ export default function HomePage({ navigate }: Props) {
             title="Hot prices"
             products={hotPrices}
             navigate={navigate}
+            showDiscount
           />
         </>
       )}

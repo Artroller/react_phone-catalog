@@ -8,16 +8,19 @@ import styles from './ProductCard.module.scss';
 type Props = {
   product: Product;
   navigate: (to: string) => void;
+  showDiscount?: boolean;
 };
 
-export default function ProductCard({ product, navigate }: Props) {
+export default function ProductCard({
+  product,
+  navigate,
+  showDiscount = false,
+}: Props) {
   const { addToCart, removeFromCart, toggleFavorite, isFavorite, isInCart } =
     useShop();
 
   const favorite = isFavorite(product.id);
   const inCart = isInCart(product.id);
-
-  const discount = product.priceRegular - product.priceDiscount;
 
   const productUrl = `/product/${product.id}`;
 
@@ -60,9 +63,17 @@ export default function ProductCard({ product, navigate }: Props) {
       </a>
 
       <div className={styles.price}>
-        <strong>${product.priceDiscount}</strong>
+        {showDiscount ? (
+          <>
+            <strong>${product.priceDiscount}</strong>
 
-        {discount > 0 && <del>${product.priceRegular}</del>}
+            {product.priceRegular > product.priceDiscount && (
+              <del>${product.priceRegular}</del>
+            )}
+          </>
+        ) : (
+          <strong>${product.priceRegular}</strong>
+        )}
       </div>
 
       <div className={styles.divider} />

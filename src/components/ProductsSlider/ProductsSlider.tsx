@@ -10,9 +10,15 @@ type Props = {
   title: string;
   products: Product[];
   navigate: (to: string) => void;
+  showDiscount?: boolean;
 };
 
-export default function ProductsSlider({ title, products, navigate }: Props) {
+export default function ProductsSlider({
+  title,
+  products,
+  navigate,
+  showDiscount = false,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: number) => {
@@ -50,7 +56,11 @@ export default function ProductsSlider({ title, products, navigate }: Props) {
         <div className={styles.track}>
           {products.map(product => (
             <div className={styles.item} key={product.id}>
-              <ProductCard product={product} navigate={navigate} />
+              <ProductCard
+                product={product}
+                navigate={navigate}
+                showDiscount={showDiscount}
+              />
             </div>
           ))}
         </div>

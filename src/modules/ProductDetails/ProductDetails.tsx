@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
-import { getProductById, getSuggestedProducts } from '../../shared/api';
+import {
+  getProductById,
+  getProductVariant,
+  getSuggestedProducts,
+} from '../../shared/api';
 import { getAssetUrl } from '../../shared/asset';
 import { useShop } from '../../shared/context/ShopContext';
 
@@ -30,15 +34,17 @@ export default function ProductDetails({ productId, navigate }: Props) {
 
   const [product, setProduct] = useState<Product | null>(null);
 
+  const [selectedVariant, setSelectedVariant] = useState<Product | null>(null);
+
   const [suggested, setSuggested] = useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
 
-  const [selectedImage, setSelectedImage] = useState(0);
-
   const [capacity, setCapacity] = useState('');
 
   const [color, setColor] = useState('');
+
+  const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -46,16 +52,37 @@ export default function ProductDetails({ productId, navigate }: Props) {
     Promise.all([getProductById(productId), getSuggestedProducts(productId)])
       .then(([current, recommendations]) => {
         setProduct(current);
+        setSelectedVariant(current);
         setSuggested(recommendations);
 
         if (current) {
-          setCapacity(current.capacityAvailable[0] || current.capacity);
+          setCapacity(current.capacity);
 
-          setColor(current.colorsAvailable[0] || current.color);
+          setColor(current.color);
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
   }, [productId]);
+
+  useEffect(() => {
+    if (!product || !capacity || !color) {
+      return;
+    }
+
+    getProductVariant(
+      product.namespaceId,
+      product.category,
+      capacity,
+      color,
+    ).then(variant => {
+      if (variant) {
+        setSelectedVariant(variant);
+        setSelectedImage(0);
+      }
+    });
+  }, [product, capacity, color]);
 
   if (loading) {
     return <Loader />;
@@ -71,8 +98,12 @@ export default function ProductDetails({ productId, navigate }: Props) {
     );
   }
 
+  const displayedProduct = selectedVariant || product;
+
   const inCart = isInCart(product.id);
   const favorite = isFavorite(product.id);
+
+  const currentPrice = displayedProduct.priceRegular;
 
   const handleCartClick = () => {
     if (inCart) {
@@ -81,7 +112,26 @@ export default function ProductDetails({ productId, navigate }: Props) {
       return;
     }
 
-    addToCart(product);
+    addToCart({
+      ...displayedProduct,
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      namespaceId: product.namespaceId,
+      year: product.year,
+      capacity,
+      color,
+      priceRegular: currentPrice,
+      priceDiscount: currentPrice,
+    });
+  };
+
+  const handleCapacityChange = (value: string) => {
+    setCapacity(value);
+  };
+
+  const handleColorChange = (value: string) => {
+    setColor(value);
   };
 
   return (
@@ -114,13 +164,13 @@ export default function ProductDetails({ productId, navigate }: Props) {
         <div>
           <div className={styles.mainImage}>
             <img
-              src={getAssetUrl(product.images[selectedImage])}
-              alt={product.name}
+              src={getAssetUrl(displayedProduct.images[selectedImage])}
+              alt={displayedProduct.name}
             />
           </div>
 
           <div className={styles.thumbs}>
-            {product.images.map((image, index) => (
+            {displayedProduct.images.map((image, index) => (
               <button
                 type="button"
                 key={image}
@@ -131,7 +181,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
               >
                 <img
                   src={getAssetUrl(image)}
-                  alt={`${product.name} ${index + 1}`}
+                  alt={`${displayedProduct.name} ${index + 1}`}
                 />
               </button>
             ))}
@@ -142,15 +192,11 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <h1>{product.name}</h1>
 
           <div className={styles.price}>
-            <strong>${product.priceDiscount}</strong>
-
-            {product.priceRegular > product.priceDiscount && (
-              <del>${product.priceRegular}</del>
-            )}
+            <strong>${currentPrice}</strong>
           </div>
 
           <div className={styles.option}>
-            <strong>Capacity</strong>
+            <strong>Capacity: {capacity}</strong>
 
             <div className={styles.radioRow}>
               {product.capacityAvailable.map(value => (
@@ -159,7 +205,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
                     type="radio"
                     name="capacity"
                     checked={capacity === value}
-                    onChange={() => setCapacity(value)}
+                    onChange={() => handleCapacityChange(value)}
                   />
 
                   <span>{value}</span>
@@ -178,7 +224,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
                     type="radio"
                     name="color"
                     checked={color === value}
-                    onChange={() => setColor(value)}
+                    onChange={() => handleColorChange(value)}
                   />
 
                   <span>{value}</span>
@@ -210,32 +256,32 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <div className={styles.specs}>
             <div>
               <span>Screen</span>
-              <b>{product.screen}</b>
+              <b>{displayedProduct.screen}</b>
             </div>
 
             <div>
               <span>Resolution</span>
-              <b>{product.resolution}</b>
+              <b>{displayedProduct.resolution}</b>
             </div>
 
             <div>
               <span>Processor</span>
-              <b>{product.processor}</b>
+              <b>{displayedProduct.processor}</b>
             </div>
 
             <div>
               <span>RAM</span>
-              <b>{product.ram}</b>
+              <b>{displayedProduct.ram}</b>
             </div>
 
             <div>
               <span>Camera</span>
-              <b>{product.camera}</b>
+              <b>{displayedProduct.camera}</b>
             </div>
 
             <div>
               <span>Zoom</span>
-              <b>{product.zoom}</b>
+              <b>{displayedProduct.zoom}</b>
             </div>
           </div>
         </div>
@@ -247,13 +293,13 @@ export default function ProductDetails({ productId, navigate }: Props) {
 
           <h3>{product.name}</h3>
 
-          <p>{product.description}</p>
+          <p>{displayedProduct.description}</p>
         </div>
 
         <div>
           <h2>Tech specs</h2>
 
-          {product.cell.map(item => (
+          {displayedProduct.cell.map(item => (
             <div className={styles.techRow} key={item}>
               <span>•</span>
               {item}
@@ -266,6 +312,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
         title="You may also like"
         products={suggested}
         navigate={navigate}
+        showDiscount={false}
       />
     </section>
   );
