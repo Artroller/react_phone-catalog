@@ -56,7 +56,7 @@
   color: #0f0f11;
 }
 
-.nav button:first-child {
+.nav button.active {
   color: #0f0f11;
   border-bottom-color: #0f0f11;
 }
@@ -72,7 +72,6 @@
 
 .search {
   width: 210px;
-
   height: 40px;
 
   margin-right: 8px;
@@ -123,6 +122,11 @@
   background: #f5f6f7;
 }
 
+.favoriteIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
 .action b {
   position: absolute;
 
@@ -153,6 +157,7 @@
   height: 44px;
 
   border: 0;
+
   background: #fff;
 
   font-size: 22px;
@@ -200,6 +205,11 @@
     border-radius: 8px;
   }
 
+  .nav button.active {
+    border: 2px solid #0f0f11;
+    color: #0f0f11;
+  }
+
   .actions {
     margin-left: auto;
   }
@@ -210,5 +220,9 @@
 
   .action {
     width: 56px;
+  }
+
+  .favoriteIcon {
+    font-size: 26px;
   }
 }

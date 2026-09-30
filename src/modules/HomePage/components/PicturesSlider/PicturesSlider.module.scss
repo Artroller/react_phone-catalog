@@ -86,13 +86,13 @@
   align-items: center;
   justify-content: center;
 
+  overflow: hidden;
+
   background: radial-gradient(
     circle,
     #2b2b36,
     #0f0f11
   );
-
-  overflow: hidden;
 }
 
 .imageWrapper img {
@@ -175,7 +175,9 @@
 
 .dotActive {
   width: 28px;
+
   border-radius: 5px;
+
   background: #8d4de8;
 }
 
@@ -196,5 +198,30 @@
 
   .imageWrapper {
     min-height: 260px;
+  }
+
+  .arrow {
+    top: auto;
+    bottom: 112px;
+
+    transform: none;
+
+    z-index: 3;
+  }
+
+  .arrow:hover {
+    transform: none;
+  }
+
+  .previous {
+    left: 16px;
+  }
+
+  .next {
+    right: 16px;
+  }
+
+  .dots {
+    z-index: 4;
   }
 }

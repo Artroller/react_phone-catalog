@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import {
-  getProductById,
-  getProductVariant,
-  getSuggestedProducts,
-} from '../../shared/api';
+import { getProductById, getSuggestedProducts } from '../../shared/api';
+
 import { getAssetUrl } from '../../shared/asset';
+
 import { useShop } from '../../shared/context/ShopContext';
 
 import type { Product } from '../../shared/types';
@@ -29,60 +27,36 @@ const categoryNames = {
 };
 
 export default function ProductDetails({ productId, navigate }: Props) {
-  const { addToCart, removeFromCart, isInCart, toggleFavorite, isFavorite } =
-    useShop();
+  const { addToCart, isInCart, toggleFavorite, isFavorite } = useShop();
 
   const [product, setProduct] = useState<Product | null>(null);
-
-  const [selectedVariant, setSelectedVariant] = useState<Product | null>(null);
 
   const [suggested, setSuggested] = useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
-
-  const [capacity, setCapacity] = useState('');
-
-  const [color, setColor] = useState('');
-
   const [selectedImage, setSelectedImage] = useState(0);
+  const [capacity, setCapacity] = useState('');
+  const [color, setColor] = useState('');
 
   useEffect(() => {
     setLoading(true);
+    setSelectedImage(0);
 
     Promise.all([getProductById(productId), getSuggestedProducts(productId)])
       .then(([current, recommendations]) => {
         setProduct(current);
-        setSelectedVariant(current);
         setSuggested(recommendations);
 
         if (current) {
-          setCapacity(current.capacity);
+          setCapacity(current.capacityAvailable[0] || current.capacity);
 
-          setColor(current.color);
+          setColor(current.colorsAvailable[0] || current.color);
         }
       })
       .finally(() => {
         setLoading(false);
       });
   }, [productId]);
-
-  useEffect(() => {
-    if (!product || !capacity || !color) {
-      return;
-    }
-
-    getProductVariant(
-      product.namespaceId,
-      product.category,
-      capacity,
-      color,
-    ).then(variant => {
-      if (variant) {
-        setSelectedVariant(variant);
-        setSelectedImage(0);
-      }
-    });
-  }, [product, capacity, color]);
 
   if (loading) {
     return <Loader />;
@@ -98,41 +72,8 @@ export default function ProductDetails({ productId, navigate }: Props) {
     );
   }
 
-  const displayedProduct = selectedVariant || product;
-
   const inCart = isInCart(product.id);
   const favorite = isFavorite(product.id);
-
-  const currentPrice = displayedProduct.priceRegular;
-
-  const handleCartClick = () => {
-    if (inCart) {
-      removeFromCart(product.id);
-
-      return;
-    }
-
-    addToCart({
-      ...displayedProduct,
-      id: product.id,
-      name: product.name,
-      category: product.category,
-      namespaceId: product.namespaceId,
-      year: product.year,
-      capacity,
-      color,
-      priceRegular: currentPrice,
-      priceDiscount: currentPrice,
-    });
-  };
-
-  const handleCapacityChange = (value: string) => {
-    setCapacity(value);
-  };
-
-  const handleColorChange = (value: string) => {
-    setColor(value);
-  };
 
   return (
     <section className={styles.page}>
@@ -155,7 +96,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
       <button
         className={styles.back}
         type="button"
-        onClick={() => window.history.back()}
+        onClick={() => navigate(`/${product.category}`)}
       >
         ← Back
       </button>
@@ -164,13 +105,13 @@ export default function ProductDetails({ productId, navigate }: Props) {
         <div>
           <div className={styles.mainImage}>
             <img
-              src={getAssetUrl(displayedProduct.images[selectedImage])}
-              alt={displayedProduct.name}
+              src={getAssetUrl(product.images[selectedImage])}
+              alt={product.name}
             />
           </div>
 
           <div className={styles.thumbs}>
-            {displayedProduct.images.map((image, index) => (
+            {product.images.map((image, index) => (
               <button
                 type="button"
                 key={image}
@@ -181,7 +122,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
               >
                 <img
                   src={getAssetUrl(image)}
-                  alt={`${displayedProduct.name} ${index + 1}`}
+                  alt={`${product.name} ${index + 1}`}
                 />
               </button>
             ))}
@@ -192,7 +133,11 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <h1>{product.name}</h1>
 
           <div className={styles.price}>
-            <strong>${currentPrice}</strong>
+            <strong>${product.priceDiscount}</strong>
+
+            {product.priceRegular > product.priceDiscount && (
+              <del>${product.priceRegular}</del>
+            )}
           </div>
 
           <div className={styles.option}>
@@ -205,7 +150,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
                     type="radio"
                     name="capacity"
                     checked={capacity === value}
-                    onChange={() => handleCapacityChange(value)}
+                    onChange={() => setCapacity(value)}
                   />
 
                   <span>{value}</span>
@@ -224,7 +169,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
                     type="radio"
                     name="color"
                     checked={color === value}
-                    onChange={() => handleColorChange(value)}
+                    onChange={() => setColor(value)}
                   />
 
                   <span>{value}</span>
@@ -236,10 +181,9 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <div className={styles.buttons}>
             <button
               type="button"
-              className={`${styles.cartButton} ${
-                inCart ? styles.cartButtonAdded : ''
-              }`}
-              onClick={handleCartClick}
+              className={styles.cartButton}
+              disabled={inCart}
+              onClick={() => addToCart(product)}
             >
               {inCart ? 'Added to cart' : 'Add to cart'}
             </button>
@@ -256,32 +200,32 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <div className={styles.specs}>
             <div>
               <span>Screen</span>
-              <b>{displayedProduct.screen}</b>
+              <b>{product.screen}</b>
             </div>
 
             <div>
               <span>Resolution</span>
-              <b>{displayedProduct.resolution}</b>
+              <b>{product.resolution}</b>
             </div>
 
             <div>
               <span>Processor</span>
-              <b>{displayedProduct.processor}</b>
+              <b>{product.processor}</b>
             </div>
 
             <div>
               <span>RAM</span>
-              <b>{displayedProduct.ram}</b>
+              <b>{product.ram}</b>
             </div>
 
             <div>
               <span>Camera</span>
-              <b>{displayedProduct.camera}</b>
+              <b>{product.camera}</b>
             </div>
 
             <div>
               <span>Zoom</span>
-              <b>{displayedProduct.zoom}</b>
+              <b>{product.zoom}</b>
             </div>
           </div>
         </div>
@@ -293,13 +237,13 @@ export default function ProductDetails({ productId, navigate }: Props) {
 
           <h3>{product.name}</h3>
 
-          <p>{displayedProduct.description}</p>
+          <p>{product.description}</p>
         </div>
 
         <div>
           <h2>Tech specs</h2>
 
-          {displayedProduct.cell.map(item => (
+          {product.cell.map(item => (
             <div className={styles.techRow} key={item}>
               <span>•</span>
               {item}
@@ -312,7 +256,6 @@ export default function ProductDetails({ productId, navigate }: Props) {
         title="You may also like"
         products={suggested}
         navigate={navigate}
-        showDiscount={false}
       />
     </section>
   );

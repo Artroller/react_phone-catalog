@@ -13,6 +13,28 @@ type Props = {
   onSearchChange: (value: string) => void;
 };
 
+function getActivePath() {
+  const pathname = window.location.pathname.replace(/\/+$/, '');
+
+  if (pathname === '' || pathname === '/react_phone-catalog') {
+    return '/';
+  }
+
+  if (pathname.endsWith('/phones')) {
+    return '/phones';
+  }
+
+  if (pathname.endsWith('/tablets')) {
+    return '/tablets';
+  }
+
+  if (pathname.endsWith('/accessories')) {
+    return '/accessories';
+  }
+
+  return '';
+}
+
 export default function Header({
   navigate,
   showSearch,
@@ -47,6 +69,8 @@ export default function Header({
     setMenuOpen(false);
   };
 
+  const activePath = getActivePath();
+
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
@@ -62,19 +86,35 @@ export default function Header({
         </button>
 
         <nav className={`${styles.nav} ${menuOpen ? styles.open : ''}`}>
-          <button type="button" onClick={() => go('/')}>
+          <button
+            className={activePath === '/' ? styles.active : ''}
+            type="button"
+            onClick={() => go('/')}
+          >
             Home
           </button>
 
-          <button type="button" onClick={() => go('/phones')}>
+          <button
+            className={activePath === '/phones' ? styles.active : ''}
+            type="button"
+            onClick={() => go('/phones')}
+          >
             Phones
           </button>
 
-          <button type="button" onClick={() => go('/tablets')}>
+          <button
+            className={activePath === '/tablets' ? styles.active : ''}
+            type="button"
+            onClick={() => go('/tablets')}
+          >
             Tablets
           </button>
 
-          <button type="button" onClick={() => go('/accessories')}>
+          <button
+            className={activePath === '/accessories' ? styles.active : ''}
+            type="button"
+            onClick={() => go('/accessories')}
+          >
             Accessories
           </button>
         </nav>
@@ -99,7 +139,7 @@ export default function Header({
             aria-label="Favorites"
             onClick={() => go('/favorites')}
           >
-            <span>♡</span>
+            <span className={styles.favoriteIcon}>♡</span>
 
             {favorites.length > 0 && <b>{favorites.length}</b>}
           </button>

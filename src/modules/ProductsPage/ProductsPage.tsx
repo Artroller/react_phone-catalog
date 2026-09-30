@@ -28,6 +28,7 @@ export default function ProductsPage({ category, query, navigate }: Props) {
   const params = new URLSearchParams(window.location.search);
 
   const [products, setProducts] = useState<Product[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -54,9 +55,13 @@ export default function ProductsPage({ category, query, navigate }: Props) {
       return products;
     }
 
-    return products.filter(product =>
-      product.name.toLowerCase().includes(normalized),
-    );
+    const words = normalized.split(/\s+/).filter(Boolean);
+
+    return products.filter(product => {
+      const searchable = `${product.name} ${product.color}`.toLowerCase();
+
+      return words.every(word => searchable.includes(word));
+    });
   }, [products, query]);
 
   const sorted = useMemo(() => {
@@ -190,7 +195,9 @@ export default function ProductsPage({ category, query, navigate }: Props) {
               onChange={event => changeSort(event.target.value)}
             >
               <option value="age">Newest</option>
+
               <option value="title">Alphabetically</option>
+
               <option value="price">Cheapest</option>
             </select>
           </label>

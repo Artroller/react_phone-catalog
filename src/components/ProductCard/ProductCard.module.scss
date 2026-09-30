@@ -176,3 +176,81 @@
   border-color: #8d4de8;
   color: #8d4de8;
 }
+
+@media (max-width: 700px) {
+  .card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .imageLink {
+    height: 150px;
+
+    margin-bottom: 14px;
+
+    border-radius: 6px;
+  }
+
+  .title {
+    min-height: 54px;
+
+    margin-bottom: 8px;
+
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .price {
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+
+  .price strong {
+    font-size: 18px;
+  }
+
+  .price del {
+    font-size: 13px;
+  }
+
+  .divider {
+    margin-bottom: 12px;
+  }
+
+  .specs {
+    margin-bottom: 14px;
+    gap: 6px;
+  }
+
+  .specs div {
+    gap: 6px;
+
+    font-size: 10px;
+  }
+
+  .specs b {
+    min-width: 0;
+
+    overflow-wrap: anywhere;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .cartButton {
+    min-height: 36px;
+
+    padding: 0 6px;
+
+    font-size: 12px;
+  }
+
+  .favoriteButton {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+
+    font-size: 16px;
+  }
+}
