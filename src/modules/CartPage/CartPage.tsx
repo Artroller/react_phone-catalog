@@ -30,6 +30,8 @@ export default function CartPage({ navigate }: Props) {
     }
   };
 
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <section className={styles.page}>
       <Breadcrumbs
@@ -58,6 +60,15 @@ export default function CartPage({ navigate }: Props) {
             <div className={styles.items}>
               {cart.map(item => (
                 <article className={styles.item} key={item.id}>
+                  <button
+                    type="button"
+                    className={styles.remove}
+                    aria-label={`Remove ${item.product.name}`}
+                    onClick={() => removeFromCart(item.id)}
+                  >
+                    ×
+                  </button>
+
                   <div className={styles.image}>
                     <img
                       src={getAssetUrl(item.product.images[0])}
@@ -67,48 +78,44 @@ export default function CartPage({ navigate }: Props) {
 
                   <div className={styles.itemContent}>
                     <h2>{item.product.name}</h2>
-
-                    <p>${item.product.priceRegular}</p>
-
-                    <div className={styles.controls}>
-                      <button
-                        type="button"
-                        aria-label="Decrease quantity"
-                        onClick={() => decreaseQuantity(item.id)}
-                        disabled={item.quantity <= 1}
-                      >
-                        −
-                      </button>
-
-                      <span>{item.quantity}</span>
-
-                      <button
-                        type="button"
-                        aria-label="Increase quantity"
-                        onClick={() => increaseQuantity(item.id)}
-                      >
-                        +
-                      </button>
-                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className={styles.remove}
-                    onClick={() => removeFromCart(item.id)}
-                  >
-                    ×
-                  </button>
+                  <div className={styles.controls}>
+                    <button
+                      type="button"
+                      aria-label="Decrease quantity"
+                      onClick={() => decreaseQuantity(item.id)}
+                      disabled={item.quantity <= 1}
+                    >
+                      −
+                    </button>
+
+                    <span>{item.quantity}</span>
+
+                    <button
+                      type="button"
+                      aria-label="Increase quantity"
+                      onClick={() => increaseQuantity(item.id)}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <strong className={styles.price}>
+                    ${item.product.priceRegular}
+                  </strong>
                 </article>
               ))}
             </div>
 
             <aside className={styles.summary}>
-              <h2>Total</h2>
+              <strong className={styles.total}>${cartTotal}</strong>
 
-              <strong>${cartTotal}</strong>
+              <span className={styles.totalText}>
+                Total for {totalItems} items
+              </span>
 
-              <p>{cart.reduce((sum, item) => sum + item.quantity, 0)} items</p>
+              <div className={styles.summaryDivider} />
 
               <button type="button" onClick={checkout}>
                 Checkout

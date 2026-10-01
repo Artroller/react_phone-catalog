@@ -57,7 +57,7 @@
   color: #0f0f11;
 
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 21px;
 
   text-decoration: none;
@@ -77,6 +77,7 @@
 
 .price strong {
   font-size: 22px;
+  font-weight: 700;
 }
 
 .price del {
@@ -106,6 +107,7 @@
   gap: 12px;
 
   font-size: 12px;
+  line-height: 16px;
 }
 
 .specs span {
@@ -115,6 +117,7 @@
 .specs b {
   color: #0f0f11;
 
+  font-weight: 500;
   text-align: right;
 }
 
@@ -126,6 +129,7 @@
 }
 
 .cartButton {
+  min-width: 0;
   min-height: 40px;
 
   flex: 1;
@@ -137,14 +141,15 @@
   color: #fff;
 
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
+  white-space: nowrap;
 
   transition:
     background 0.2s ease,
     transform 0.2s ease;
 }
 
-.cartButton:hover:not(:disabled) {
+.cartButton:hover {
   background: #3412a8;
   transform: translateY(-1px);
 }
@@ -160,7 +165,7 @@
   height: 40px;
 
   border: 1px solid #e2e6e9;
-  border-radius: 8px;
+  border-radius: 50%;
 
   background: #fff;
 
@@ -180,13 +185,61 @@
   color: #8d4de8;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 400px) {
   .card {
-    padding: 20px;
+    padding: 16px;
   }
 
   .imageLink {
-    height: 240px;
+    height: 190px;
+
+    margin-bottom: 16px;
+    padding: 4px;
+  }
+
+  .image {
+    width: 76%;
+    height: 76%;
+  }
+
+  .title {
+    min-height: 36px;
+
+    margin-bottom: 10px;
+
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .price {
+    margin-bottom: 10px;
+  }
+
+  .price strong {
+    font-size: 20px;
+  }
+
+  .price del {
+    font-size: 14px;
+  }
+
+  .divider {
+    margin-bottom: 12px;
+  }
+
+  .specs {
+    margin-bottom: 16px;
+    gap: 6px;
+  }
+
+  .specs div {
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .cartButton {
+    min-height: 40px;
+
+    font-size: 12px;
   }
 }
-

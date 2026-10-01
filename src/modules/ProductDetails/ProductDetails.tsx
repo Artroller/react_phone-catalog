@@ -41,8 +41,9 @@ export default function ProductDetails({ productId, navigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const fromHotPrices =
-    new URLSearchParams(window.location.search).get('from') === 'hot';
+  const params = new URLSearchParams(window.location.search);
+
+  const fromHotPrices = params.get('from') === 'hot';
 
   useEffect(() => {
     const loadProduct = async () => {

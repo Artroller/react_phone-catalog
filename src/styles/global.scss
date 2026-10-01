@@ -15,7 +15,10 @@ body {
   background: #fff;
   color: #0f0f11;
 
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Mont, sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -81,4 +84,3 @@ img {
     padding: 24px 16px 60px;
   }
 }
-
