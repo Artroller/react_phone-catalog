@@ -1,6 +1,6 @@
 .card {
+  width: 100%;
   min-width: 0;
-
   padding: 24px;
 
   display: flex;
@@ -144,9 +144,8 @@
     transform 0.2s ease;
 }
 
-.cartButton:hover {
+.cartButton:hover:not(:disabled) {
   background: #3412a8;
-
   transform: translateY(-1px);
 }
 
@@ -178,6 +177,16 @@
 
 .favoriteActive {
   border-color: #8d4de8;
-
   color: #8d4de8;
 }
+
+@media (max-width: 700px) {
+  .card {
+    padding: 20px;
+  }
+
+  .imageLink {
+    height: 240px;
+  }
+}
+
