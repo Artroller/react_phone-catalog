@@ -189,26 +189,16 @@ export async function getProductById(
   return createDetailedProduct(detailedProduct, basicProduct.year);
 }
 
-export async function getProductVariant(
+export async function getProductVariants(
   namespaceId: string,
   category: Category,
-  capacity: string,
-  color: string,
-): Promise<Product | null> {
+  year: number,
+): Promise<Product[]> {
   const detailedProducts = await getCategoryData(category);
 
-  const variant = detailedProducts.find(
-    product =>
-      product.namespaceId === namespaceId &&
-      product.capacity === capacity &&
-      product.color.toLowerCase() === color.toLowerCase(),
-  );
-
-  if (!variant) {
-    return null;
-  }
-
-  return createDetailedProduct(variant, 0);
+  return detailedProducts
+    .filter(product => product.namespaceId === namespaceId)
+    .map(product => createDetailedProduct(product, year));
 }
 
 export async function getSuggestedProducts(

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { getProducts } from '../../shared/api';
-
 import type { Product } from '../../shared/types';
 
 import Loader from '../../components/Loader';
@@ -18,9 +17,7 @@ type Props = {
 
 export default function HomePage({ navigate }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState(false);
 
   useEffect(() => {

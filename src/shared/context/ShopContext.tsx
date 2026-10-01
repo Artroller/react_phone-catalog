@@ -52,7 +52,6 @@ function readFavorites(): string[] {
 
 export function ShopProvider({ children }: Props) {
   const [cart, setCart] = useState<CartItem[]>(readCart);
-
   const [favorites, setFavorites] = useState<string[]>(readFavorites);
 
   useEffect(() => {
@@ -129,18 +128,14 @@ export function ShopProvider({ children }: Props) {
     });
   };
 
-  const isFavorite = (id: string) => {
-    return favorites.includes(id);
-  };
+  const isFavorite = (id: string) => favorites.includes(id);
 
-  const isInCart = (id: string) => {
-    return cart.some(item => item.id === id);
-  };
+  const isInCart = (id: string) => cart.some(item => item.id === id);
 
   const cartQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const cartTotal = cart.reduce(
-    (sum, item) => sum + item.product.priceDiscount * item.quantity,
+    (sum, item) => sum + item.product.priceRegular * item.quantity,
     0,
   );
 

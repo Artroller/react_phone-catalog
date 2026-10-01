@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import { getProductById, getSuggestedProducts } from '../../shared/api';
-
+import {
+  getProductById,
+  getProductVariants,
+  getSuggestedProducts,
+} from '../../shared/api';
 import { getAssetUrl } from '../../shared/asset';
-
 import { useShop } from '../../shared/context/ShopContext';
 
 import type { Product } from '../../shared/types';
@@ -27,35 +29,53 @@ const categoryNames = {
 };
 
 export default function ProductDetails({ productId, navigate }: Props) {
-  const { addToCart, isInCart, toggleFavorite, isFavorite } = useShop();
+  const { addToCart, removeFromCart, isInCart, toggleFavorite, isFavorite } =
+    useShop();
 
   const [product, setProduct] = useState<Product | null>(null);
+
+  const [variants, setVariants] = useState<Product[]>([]);
 
   const [suggested, setSuggested] = useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [capacity, setCapacity] = useState('');
-  const [color, setColor] = useState('');
+
+  const fromHotPrices =
+    new URLSearchParams(window.location.search).get('from') === 'hot';
 
   useEffect(() => {
-    setLoading(true);
-    setSelectedImage(0);
+    const loadProduct = async () => {
+      setLoading(true);
 
-    Promise.all([getProductById(productId), getSuggestedProducts(productId)])
-      .then(([current, recommendations]) => {
-        setProduct(current);
-        setSuggested(recommendations);
+      try {
+        const current = await getProductById(productId);
 
-        if (current) {
-          setCapacity(current.capacityAvailable[0] || current.capacity);
+        if (!current) {
+          setProduct(null);
 
-          setColor(current.colorsAvailable[0] || current.color);
+          return;
         }
-      })
-      .finally(() => {
+
+        const [productVariants, recommendations] = await Promise.all([
+          getProductVariants(
+            current.namespaceId,
+            current.category,
+            current.year,
+          ),
+          getSuggestedProducts(productId),
+        ]);
+
+        setProduct(current);
+        setVariants(productVariants);
+        setSuggested(recommendations);
+        setSelectedImage(0);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    loadProduct();
   }, [productId]);
 
   if (loading) {
@@ -72,8 +92,79 @@ export default function ProductDetails({ productId, navigate }: Props) {
     );
   }
 
+  const capacities = Array.from(
+    new Set(variants.map(variant => variant.capacity)),
+  );
+
+  const colors = Array.from(new Set(variants.map(variant => variant.color)));
+
+  const findVariant = (nextCapacity: string, nextColor: string) => {
+    const exactVariant = variants.find(
+      variant =>
+        variant.capacity === nextCapacity &&
+        variant.color.toLowerCase() === nextColor.toLowerCase(),
+    );
+
+    if (exactVariant) {
+      return exactVariant;
+    }
+
+    const capacityVariant = variants.find(
+      variant => variant.capacity === nextCapacity,
+    );
+
+    if (capacityVariant) {
+      return capacityVariant;
+    }
+
+    const colorVariant = variants.find(
+      variant => variant.color.toLowerCase() === nextColor.toLowerCase(),
+    );
+
+    if (colorVariant) {
+      return colorVariant;
+    }
+
+    return product;
+  };
+
+  const changeVariant = (nextProduct: Product) => {
+    if (nextProduct.id === product.id) {
+      return;
+    }
+
+    setProduct(nextProduct);
+    setSelectedImage(0);
+
+    const hotQuery = fromHotPrices ? '?from=hot' : '';
+
+    navigate(`/product/${nextProduct.id}${hotQuery}`);
+  };
+
+  const changeCapacity = (nextCapacity: string) => {
+    const nextProduct = findVariant(nextCapacity, product.color);
+
+    changeVariant(nextProduct);
+  };
+
+  const changeColor = (nextColor: string) => {
+    const nextProduct = findVariant(product.capacity, nextColor);
+
+    changeVariant(nextProduct);
+  };
+
   const inCart = isInCart(product.id);
   const favorite = isFavorite(product.id);
+
+  const handleCartClick = () => {
+    if (inCart) {
+      removeFromCart(product.id);
+
+      return;
+    }
+
+    addToCart(product);
+  };
 
   return (
     <section className={styles.page}>
@@ -94,8 +185,8 @@ export default function ProductDetails({ productId, navigate }: Props) {
       />
 
       <button
-        className={styles.back}
         type="button"
+        className={styles.back}
         onClick={() => navigate(`/${product.category}`)}
       >
         ← Back
@@ -133,24 +224,30 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <h1>{product.name}</h1>
 
           <div className={styles.price}>
-            <strong>${product.priceDiscount}</strong>
+            {fromHotPrices ? (
+              <>
+                <strong>${product.priceDiscount}</strong>
 
-            {product.priceRegular > product.priceDiscount && (
-              <del>${product.priceRegular}</del>
+                {product.priceRegular > product.priceDiscount && (
+                  <del>${product.priceRegular}</del>
+                )}
+              </>
+            ) : (
+              <strong>${product.priceRegular}</strong>
             )}
           </div>
 
           <div className={styles.option}>
-            <strong>Capacity: {capacity}</strong>
+            <strong>Capacity: {product.capacity}</strong>
 
             <div className={styles.radioRow}>
-              {product.capacityAvailable.map(value => (
+              {capacities.map(value => (
                 <label key={value}>
                   <input
                     type="radio"
                     name="capacity"
-                    checked={capacity === value}
-                    onChange={() => setCapacity(value)}
+                    checked={product.capacity === value}
+                    onChange={() => changeCapacity(value)}
                   />
 
                   <span>{value}</span>
@@ -160,16 +257,18 @@ export default function ProductDetails({ productId, navigate }: Props) {
           </div>
 
           <div className={styles.option}>
-            <strong>Color: {color}</strong>
+            <strong>Color: {product.color}</strong>
 
             <div className={styles.radioRow}>
-              {product.colorsAvailable.map(value => (
+              {colors.map(value => (
                 <label key={value}>
                   <input
                     type="radio"
                     name="color"
-                    checked={color === value}
-                    onChange={() => setColor(value)}
+                    checked={
+                      product.color.toLowerCase() === value.toLowerCase()
+                    }
+                    onChange={() => changeColor(value)}
                   />
 
                   <span>{value}</span>
@@ -181,9 +280,10 @@ export default function ProductDetails({ productId, navigate }: Props) {
           <div className={styles.buttons}>
             <button
               type="button"
-              className={styles.cartButton}
-              disabled={inCart}
-              onClick={() => addToCart(product)}
+              className={`${styles.cartButton} ${
+                inCart ? styles.cartButtonAdded : ''
+              }`}
+              onClick={handleCartClick}
             >
               {inCart ? 'Added to cart' : 'Add to cart'}
             </button>
@@ -234,9 +334,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
       <div className={styles.about}>
         <div>
           <h2>About</h2>
-
           <h3>{product.name}</h3>
-
           <p>{product.description}</p>
         </div>
 
@@ -256,6 +354,7 @@ export default function ProductDetails({ productId, navigate }: Props) {
         title="You may also like"
         products={suggested}
         navigate={navigate}
+        showDiscount={false}
       />
     </section>
   );

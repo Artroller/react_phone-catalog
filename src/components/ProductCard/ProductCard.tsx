@@ -22,7 +22,9 @@ export default function ProductCard({
   const favorite = isFavorite(product.id);
   const inCart = isInCart(product.id);
 
-  const productUrl = `/product/${product.id}`;
+  const productUrl = showDiscount
+    ? `/product/${product.id}?from=hot`
+    : `/product/${product.id}`;
 
   const handleCartClick = () => {
     if (inCart) {
